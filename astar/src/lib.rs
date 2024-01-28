@@ -1,7 +1,15 @@
 use std::cell::RefCell;
-use std::rc::Rc;
+use std::rc::{Rc};
 use std::clone::Clone;
 use std::cmp::Ordering;
+
+pub enum Tile {
+    Blank,
+    StartingPoint,
+    Floor,
+    Wall,
+    Goal
+}
 
 pub struct Vector2 {
     pub x: i32,
@@ -70,16 +78,22 @@ impl PartialOrd for Vector2 {
 
 pub struct Node {
     pos: Vector2,
-    edges: Rc<RefCell<Node>>
+    edges: Vec<Rc<RefCell<Node>>>
 }
 
-pub enum Tile {
-    Blank,
-    StartingPoint,
-    Floor,
-    Wall,
-    Goal
+impl Node {
+    pub fn new(pos: Vector2) -> Node {
+        Node {
+            pos,
+            edges: vec![]
+        }
+    }
+
+    pub fn add_edge(&mut self, new_edge: Rc<RefCell<Node>>) {
+        self.edges.push(new_edge);
+    }
 }
+
 
 pub struct MazeMap {
     tiles: Vec<Tile>,
@@ -121,5 +135,97 @@ impl MazeMap {
 
     fn get_idx_from_pos(&self, pos: &Vector2) -> usize {
         (pos.y * self.size.x + pos.x) as usize
+    }
+}
+
+pub struct PriorityQueue<T> {
+    arr: Vec<Option<T>>,
+    size: usize,
+}
+
+impl<T: std::cmp::PartialOrd> PriorityQueue<T> {
+    pub fn new() -> PriorityQueue<T> {
+        PriorityQueue {
+            arr: vec![],
+            size: 0
+        }
+    }
+
+    pub fn len(&self) -> usize {
+        self.size
+    }
+
+    pub fn push(&mut self, node: T) {
+        let mut cur_idx = self.size;
+
+        if self.arr.len() == cur_idx {
+            self.arr.push(Some(node));
+        } else {
+            self.arr[cur_idx] = Some(node);
+        }
+
+        self.size = self.size + 1;
+
+        while cur_idx != 0 {
+            let mut parent_idx = Self::get_parent(cur_idx);
+
+            if self.arr[parent_idx] < self.arr[cur_idx] {
+                self.arr.swap(parent_idx, cur_idx);
+                cur_idx = parent_idx;
+            } else {
+                break;
+            }
+        }
+    }
+
+    pub fn pop(&mut self) -> Option<T> {
+        if self.size == 0 {
+            return None;
+        }
+
+        self.size -= 1;
+
+        let mut root = self.arr[0].take();
+        let mut cur_idx = self.size;
+
+        self.arr.swap(0, cur_idx);
+        cur_idx = 0;
+
+        loop {
+            let left_idx = Self::get_left_child(cur_idx);
+            let right_idx = Self::get_right_child(cur_idx);
+
+            if !self.arr[left_idx].is_none() && self.arr[left_idx] > self.arr[cur_idx] {
+                self.arr.swap(cur_idx, left_idx);
+                cur_idx = left_idx;
+            } else if !self.arr[right_idx].is_none() && self.arr[right_idx] > self.arr[cur_idx] {
+                self.arr.swap(cur_idx, right_idx);
+                cur_idx = right_idx;
+            } else {
+                break;
+            }
+        }
+
+        return root;
+    }
+
+    // pub fn peek(&self) -> Option<&T> {
+    //     if self.size == 0 {
+    //         None
+    //     } else {
+    //         Some(&self.arr[0].as_deref())
+    //     }
+    // }
+
+    fn get_parent(idx: usize) -> usize {
+        (idx - 1) / 2
+    }
+
+    fn get_left_child(idx: usize) -> usize {
+        idx * 2 + 1
+    }
+
+    fn get_right_child(idx: usize) -> usize {
+        idx * 2 + 2
     }
 }
