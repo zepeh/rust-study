@@ -64,21 +64,76 @@ mod priority_queue_tests {
     }
 
     #[test]
+    fn push() {
+        let mut q = PriorityQueue::new();
+
+        q.push(1);
+        assert_eq!(1, q.data()[0].unwrap());
+        assert_eq!(1, q.len());
+
+        q.push(3);
+        assert_eq!(3, q.data()[0].unwrap());
+        assert_eq!(1, q.data()[1].unwrap());
+        assert_eq!(2, q.len());
+
+        q.push(2);
+        assert_eq!(3, q.data()[0].unwrap());
+        assert_eq!(1, q.data()[1].unwrap());
+        assert_eq!(2, q.data()[2].unwrap());
+        assert_eq!(3, q.len());
+
+        q.push(4);
+        assert_eq!(4, q.data()[0].unwrap());
+        assert_eq!(3, q.data()[1].unwrap());
+        assert_eq!(2, q.data()[2].unwrap());
+        assert_eq!(1, q.data()[3].unwrap());
+        assert_eq!(4, q.len());
+
+        q.push(0);
+        assert_eq!(4, q.data()[0].unwrap());
+        assert_eq!(3, q.data()[1].unwrap());
+        assert_eq!(2, q.data()[2].unwrap());
+        assert_eq!(1, q.data()[3].unwrap());
+        assert_eq!(0, q.data()[4].unwrap());
+        assert_eq!(5, q.len());
+    }
+
+    #[test]
     fn push_and_pop() {
-        let mut queue = PriorityQueue::new();
-        assert_eq!(0, queue.len());
+        let mut q = PriorityQueue::new();
 
-        queue.push(Elem::new(0));
-        assert_eq!(1, queue.len());
+        q.push(0);
+        q.push(1);
+        q.push(2);
+        q.push(3);
+        q.push(4);
+        assert_eq!(5, q.len());
 
-        queue.push(Elem::new(1));
-        assert_eq!(2, queue.len());
+        let four = q.pop();
+        assert!(four.is_some());
+        assert_eq!(4, four.unwrap());
+        assert_eq!(4, q.len());
 
-        let pop_node0 = queue.pop().unwrap();
-        let pop_node1 = queue.pop().unwrap();
+        let three = q.pop();
+        assert!(three.is_some());
+        assert_eq!(3, three.unwrap());
+        assert_eq!(3, q.len());
 
-        assert!(Elem::new(0) == pop_node0);
-        assert!(Elem::new(1) == pop_node1);
-        assert_eq!(0, queue.len());
+        let two = q.pop();
+        assert!(two.is_some());
+        assert_eq!(2, two.unwrap());
+        assert_eq!(2, q.len());
+
+        let one = q.pop();
+        assert!(one.is_some());
+        assert_eq!(1, one.unwrap());
+        assert_eq!(1, q.len());
+
+        let zero = q.pop();
+        assert!(zero.is_some());
+        assert_eq!(0, zero.unwrap());
+        assert_eq!(0, q.len());
+
+        assert!(q.pop().is_none());
     }
 }
