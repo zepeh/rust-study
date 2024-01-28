@@ -151,6 +151,15 @@ impl<T: std::cmp::PartialOrd> PriorityQueue<T> {
         }
     }
 
+    pub fn data(&self) -> &Vec<Option<T>> {
+        &self.arr
+    }
+
+    pub fn clear(&mut self) {
+        self.arr.clear();
+        self.size = 0;
+    }
+
     pub fn len(&self) -> usize {
         self.size
     }
@@ -185,8 +194,9 @@ impl<T: std::cmp::PartialOrd> PriorityQueue<T> {
 
         self.size -= 1;
 
-        let mut root = self.arr[0].take();
+        let root = self.arr[0].take();
         let mut cur_idx = self.size;
+        let last_idx = self.arr.len() - 1;
 
         self.arr.swap(0, cur_idx);
         cur_idx = 0;
@@ -195,10 +205,10 @@ impl<T: std::cmp::PartialOrd> PriorityQueue<T> {
             let left_idx = Self::get_left_child(cur_idx);
             let right_idx = Self::get_right_child(cur_idx);
 
-            if !self.arr[left_idx].is_none() && self.arr[left_idx] > self.arr[cur_idx] {
+            if left_idx <= last_idx && !self.arr[left_idx].is_none() && self.arr[left_idx] > self.arr[cur_idx] {
                 self.arr.swap(cur_idx, left_idx);
                 cur_idx = left_idx;
-            } else if !self.arr[right_idx].is_none() && self.arr[right_idx] > self.arr[cur_idx] {
+            } else if right_idx <= last_idx && !self.arr[right_idx].is_none() && self.arr[right_idx] > self.arr[cur_idx] {
                 self.arr.swap(cur_idx, right_idx);
                 cur_idx = right_idx;
             } else {
@@ -209,13 +219,13 @@ impl<T: std::cmp::PartialOrd> PriorityQueue<T> {
         return root;
     }
 
-    // pub fn peek(&self) -> Option<&T> {
-    //     if self.size == 0 {
-    //         None
-    //     } else {
-    //         Some(&self.arr[0].as_deref())
-    //     }
-    // }
+    pub fn peek(&self) -> Option<&T> {
+        if self.size == 0 {
+            None
+        } else {
+            self.arr[0].as_ref()
+        }
+    }
 
     fn get_parent(idx: usize) -> usize {
         (idx - 1) / 2
